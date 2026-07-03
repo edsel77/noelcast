@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,9 +19,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-
-const { width: SW, height: SH } = Dimensions.get('window');
-const LOGO_SIZE = Math.min(SW * 0.6, 280);
 
 // ── Animated Equalizer Bars ────────────────────────────────────────────────────
 function EqualizerVisualizer({ isPlaying }: { isPlaying: boolean }) {
@@ -141,7 +139,7 @@ function MovingSnowflake({ index }: { index: number }) {
 }
 
 // ── Pulsing ring around the logo ──────────────────────────────────────────────
-function PulseRing({ active }: { active: boolean }) {
+function PulseRing({ active, logoSize }: { active: boolean, logoSize: number }) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -173,9 +171,9 @@ function PulseRing({ active }: { active: boolean }) {
     <Animated.View
       style={{
         position: 'absolute',
-        width: LOGO_SIZE + 32,
-        height: LOGO_SIZE + 32,
-        borderRadius: (LOGO_SIZE + 32) / 2,
+        width: logoSize + 32,
+        height: logoSize + 32,
+        borderRadius: (logoSize + 32) / 2,
         borderWidth: 2,
         borderColor: Colors.primary,
         transform: [{ scale }],
@@ -187,6 +185,8 @@ function PulseRing({ active }: { active: boolean }) {
 
 // ── Full Screen Player ─────────────────────────────────────────────────────────
 export function FullScreenPlayer({ inline = false }: { inline?: boolean }) {
+  const { width: SW } = useWindowDimensions();
+  const logoSize = Math.min(SW * 0.6, 280);
   const insets = useSafeAreaInsets();
   const { currentStation, isPlaying, isLoading, isPlayerVisible, togglePlayPause, stopPlayer, playNext, playPrevious, closePlayer } = usePlayer();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -207,12 +207,12 @@ export function FullScreenPlayer({ inline = false }: { inline?: boolean }) {
         />
         <View style={styles.inlineContainer}>
           <View style={styles.middleContainer}>
-            <View style={styles.logoWrapper}>
-              <PulseRing active={isPlaying} />
-              <View style={styles.logoBg}>
+            <View style={[styles.logoWrapper, { width: logoSize + 32, height: logoSize + 32 }]}>
+              <PulseRing active={isPlaying} logoSize={logoSize} />
+              <View style={[styles.logoBg, { width: logoSize, height: logoSize, borderRadius: logoSize / 2 }]}>
                 <Image
                   source={require('@/assets/images/station-placeholder.png')}
-                  style={styles.logo}
+                  style={[styles.logo, { width: logoSize * 1.1, height: logoSize * 1.1 }]}
                   resizeMode="cover"
                 />
               </View>
@@ -308,12 +308,12 @@ export function FullScreenPlayer({ inline = false }: { inline?: boolean }) {
           {/* Middle Container for Logo and Info */}
           <View style={styles.middleContainer}>
             {/* Station Logo */}
-            <View style={styles.logoWrapper}>
-              <PulseRing active={isPlaying} />
-              <View style={styles.logoBg}>
+            <View style={[styles.logoWrapper, { width: logoSize + 32, height: logoSize + 32 }]}>
+              <PulseRing active={isPlaying} logoSize={logoSize} />
+              <View style={[styles.logoBg, { width: logoSize, height: logoSize, borderRadius: logoSize / 2 }]}>
                 <Image
                   source={require('@/assets/images/station-placeholder.png')}
-                  style={styles.logo}
+                  style={[styles.logo, { width: logoSize * 1.1, height: logoSize * 1.1 }]}
                   resizeMode="cover"
                 />
               </View>
@@ -446,16 +446,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   logoWrapper: {
-    width: LOGO_SIZE + 32,
-    height: LOGO_SIZE + 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   logoBg: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-    borderRadius: LOGO_SIZE / 2,
     backgroundColor: Colors.surface,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -464,8 +459,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.primaryDark,
   },
   logo: {
-    width: LOGO_SIZE * 1.1,
-    height: LOGO_SIZE * 1.1,
   },
   stationInfo: {
     alignItems: 'center',
