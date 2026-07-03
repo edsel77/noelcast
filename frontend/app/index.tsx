@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -35,6 +35,11 @@ export default function HomeScreen() {
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const { currentStation, isPlaying, isLoading, togglePlayPause, playNext, playPrevious, playStation } = usePlayer();
   const { isTablet, isDesktop, width } = useBreakpoint();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const numColumns = isDesktop ? 3 : isTablet ? 2 : 1;
 
@@ -45,6 +50,12 @@ export default function HomeScreen() {
 
   const [filterVisible, setFilterVisible] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
+
+  // Prevent flash of mobile layout by waiting for client-side hydration
+  if (!isMounted) {
+    return null;
+  }
+
 
   const toggleSearch = () => {
     if (searchVisible) {
