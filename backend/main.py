@@ -116,3 +116,17 @@ async def get_station(station_uuid: str):
             return station
 
     raise HTTPException(status_code=404, detail="Station not found.")
+
+
+@app.get("/cron")
+async def cron_job():
+    """Endpoint for cron jobs to keep the server alive and refresh cache."""
+    try:
+        await get_christmas_stations(force_refresh=True)
+        return {"status": "ok", "message": "Cron job executed successfully, cache refreshed."}
+    except Exception as exc:
+        logger.error("Cron job failed: %s", exc)
+        return JSONResponse(
+            status_code=502, 
+            content={"status": "error", "message": "Failed to refresh stations."}
+        )
