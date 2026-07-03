@@ -25,6 +25,22 @@ export default function RootLayout() {
             <Head>
               <title>NoelCast - Christmas Radio</title>
               <meta name="description" content="A premium Christmas radio streaming application." />
+              <meta name="keywords" content="Christmas radio, holiday music, streaming, festive, NoelCast" />
+              <meta name="author" content="NoelCast" />
+              <meta name="theme-color" content="#121212" />
+              
+              {/* Open Graph */}
+              <meta property="og:title" content="NoelCast - Christmas Radio" />
+              <meta property="og:description" content="A premium Christmas radio streaming application." />
+              <meta property="og:type" content="website" />
+              <meta property="og:url" content="https://noelcast.driftapps.xyz" />
+              <meta property="og:image" content="https://noelcast.driftapps.xyz/favicon.ico" />
+              
+              {/* Twitter Card */}
+              <meta name="twitter:card" content="summary" />
+              <meta name="twitter:title" content="NoelCast - Christmas Radio" />
+              <meta name="twitter:description" content="A premium Christmas radio streaming application." />
+              <meta name="twitter:image" content="https://noelcast.driftapps.xyz/favicon.ico" />
             </Head>
             <StatusBar style="light" />
             <Stack screenOptions={{ headerShown: false }} />

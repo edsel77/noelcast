@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://noelcast.driftapps.xyz/sitemap.xml
