@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Image,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -393,6 +394,26 @@ export function FullScreenPlayer({ inline = false }: { inline?: boolean }) {
                 <Ionicons name="play-skip-forward" size={36} color={Colors.textMuted} />
               </TouchableOpacity>
             </View>
+
+            {/* Developer Credit — Android only */}
+            {Platform.OS === 'android' && (
+              <View style={styles.devCredit}>
+                <Text style={styles.devCreditText}>Developed by{' '}
+                  <Text
+                    style={styles.devCreditLink}
+                    onPress={() => Linking.openURL('https://driftapps.xyz')}
+                  >
+                    Drift Apps
+                  </Text>
+                </Text>
+                <Text
+                  style={styles.devCreditUrl}
+                  onPress={() => Linking.openURL('https://noelcast.driftapps.xyz')}
+                >
+                  noelcast.driftapps.xyz
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>
@@ -540,5 +561,29 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  devCredit: {
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+    gap: 4,
+  },
+  devCreditText: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  devCreditLink: {
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  devCreditUrl: {
+    color: Colors.textMuted,
+    fontSize: 10,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    textDecorationColor: 'rgba(255,255,255,0.2)',
   },
 });

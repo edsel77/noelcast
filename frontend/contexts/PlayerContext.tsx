@@ -1,5 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import { Station } from '@/constants/types';
 
 interface PlayerState {
@@ -24,7 +24,11 @@ interface PlayerContextValue extends PlayerState {
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const player = useAudioPlayer(null, {
+    keepAudioSessionActive: true,
+  });
+  const playerStatus = useAudioPlayerStatus(player);
+
   const [state, setState] = useState<PlayerState>({
     currentStation: null,
     isPlaying: false,
@@ -34,29 +38,42 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     queue: [],
   });
 
+  // Sync player status with our state
+  useEffect(() => {
+    setState(prev => {
+      const newIsPlaying = playerStatus.playing;
+      // We consider it loading if it's buffering, or if a station is selected but not loaded yet
+      const newIsLoading = playerStatus.isBuffering || (!playerStatus.isLoaded && prev.currentStation !== null);
+      const newError = playerStatus.error || null;
+      
+      if (prev.isPlaying === newIsPlaying && prev.isLoading === newIsLoading && prev.error === newError) {
+        return prev;
+      }
+      return {
+        ...prev,
+        isPlaying: newIsPlaying,
+        isLoading: newIsLoading,
+        error: newError
+      };
+    });
+  }, [playerStatus.playing, playerStatus.isBuffering, playerStatus.isLoaded, playerStatus.error]);
+
   // Set up audio session on mount
   useEffect(() => {
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      staysActiveInBackground: true,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
+    setAudioModeAsync({
+      shouldPlayInBackground: true,
+      playsInSilentMode: true,
+      allowsRecording: false,
+      interruptionMode: 'mixWithOthers',
+      shouldRouteThroughEarpiece: false,
     });
-
-    return () => {
-      soundRef.current?.unloadAsync();
-    };
   }, []);
 
   const stopPlayer = useCallback(async () => {
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
-      await soundRef.current.unloadAsync();
-      soundRef.current = null;
-    }
-    setState(prev => ({ ...prev, isPlaying: false, isLoading: false }));
-  }, []);
+    player.pause();
+    player.replace(null);
+    setState(prev => ({ ...prev, isPlaying: false, isLoading: false, currentStation: null }));
+  }, [player]);
 
   const playStation = useCallback(async (station: Station, queue?: Station[]) => {
     setState(prev => ({
@@ -64,53 +81,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       currentStation: station,
       queue: queue || prev.queue,
       isLoading: true,
-      isPlaying: false,
       error: null,
       isPlayerVisible: true,
     }));
 
     try {
-      // Unload previous sound
-      if (soundRef.current) {
-        soundRef.current.setOnPlaybackStatusUpdate(null);
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
-
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: station.stream_url },
-        { shouldPlay: true, isLooping: false, volume: 1.0 },
-        (status: AVPlaybackStatus) => {
-          if (status.isLoaded) {
-            setState(prev => {
-              const newIsPlaying = status.isPlaying;
-              const newIsLoading = status.isBuffering || (status.shouldPlay && !status.isPlaying);
-              
-              if (prev.isPlaying === newIsPlaying && prev.isLoading === newIsLoading) {
-                return prev;
-              }
-              
-              return {
-                ...prev,
-                isPlaying: newIsPlaying,
-                isLoading: newIsLoading,
-              };
-            });
-          } else if (status.error) {
-            setState(prev => ({
-              ...prev,
-              error: `Playback error: ${status.error}`,
-              isPlaying: false,
-              isLoading: false,
-            }));
-          }
-        }
-      );
-
-      soundRef.current = sound;
-      // We rely on the onPlaybackStatusUpdate callback for subsequent updates,
-      // but we shouldn't forcefully set isPlaying=true here to avoid flickering.
+      player.replace(station.stream_url);
+      player.play();
     } catch (err: any) {
       setState(prev => ({
         ...prev,
@@ -119,25 +96,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         error: 'Failed to load stream. Please try another station.',
       }));
     }
-  }, []);
+  }, [player]);
 
   const togglePlayPause = useCallback(async () => {
-    if (!soundRef.current) return;
-    try {
-      const status = await soundRef.current.getStatusAsync();
-      if (!status.isLoaded) return;
-      
-      if (state.isPlaying) {
-        await soundRef.current.pauseAsync();
-        setState(prev => ({ ...prev, isPlaying: false }));
-      } else {
-        await soundRef.current.playAsync();
-        setState(prev => ({ ...prev, isPlaying: true }));
-      }
-    } catch (e) {
-      console.warn('Could not toggle play/pause:', e);
+    if (playerStatus.playing) {
+      player.pause();
+    } else {
+      player.play();
     }
-  }, [state.isPlaying]);
+  }, [player, playerStatus.playing]);
 
   const openPlayer = useCallback(() => {
     setState(prev => ({ ...prev, isPlayerVisible: true }));
@@ -154,7 +121,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (currentIndex === -1) return prev;
       const nextIndex = (currentIndex + 1) % prev.queue.length;
       const nextStation = prev.queue[nextIndex];
-      // Trigger playStation asynchronously without relying on state callback
       setTimeout(() => playStation(nextStation, prev.queue), 0);
       return prev;
     });

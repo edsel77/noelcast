@@ -11,7 +11,7 @@ const pythonBin = isWin
 
 console.log(`Starting Uvicorn using ${pythonBin}...`);
 
-const child = spawn(pythonBin, ['-m', 'uvicorn', 'main:app', '--reload'], {
+const child = spawn(pythonBin, ['-m', 'uvicorn', 'main:app', '--reload', '--host', '0.0.0.0'], {
   cwd: backendDir,
   stdio: 'inherit'
 });

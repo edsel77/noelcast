@@ -11,7 +11,7 @@ export function EqualizerBars({ color = Colors.accent, size = 'medium' }: Equali
   const isSmall = size === 'small';
   const maxHeight = isSmall ? 10 : 14;
   const baseHeight = isSmall ? 3 : 4;
-  
+
   const anims = useRef([
     new Animated.Value(baseHeight + 4.4),
     new Animated.Value(maxHeight),
@@ -37,7 +37,6 @@ export function EqualizerBars({ color = Colors.accent, size = 'medium' }: Equali
     );
 
     animations.forEach(a => a.start());
-
     return () => animations.forEach(a => a.stop());
   }, [anims, baseHeight, maxHeight]);
 
@@ -46,10 +45,7 @@ export function EqualizerBars({ color = Colors.accent, size = 'medium' }: Equali
       {anims.map((anim, i) => (
         <Animated.View
           key={i}
-          style={[
-            styles.bar,
-            { height: anim, backgroundColor: color }
-          ]}
+          style={[styles.bar, { height: anim, backgroundColor: color }]}
         />
       ))}
     </View>

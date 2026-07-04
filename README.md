@@ -61,7 +61,7 @@
 |---|---|---|
 | **Frontend** | [Expo](https://expo.dev) (React Native) | [Netlify](https://netlify.com) (web) · Google Play (Android) |
 | **Backend** | [FastAPI](https://fastapi.tiangolo.com/) (Python) | [Render](https://render.com) |
-| **Audio** | [expo-av](https://docs.expo.dev/versions/latest/sdk/av/) | — |
+| **Audio** | [expo-audio](https://docs.expo.dev/versions/latest/sdk/audio/) | — |
 | **Storage** | [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) | localStorage on web |
 | **Stations API** | [Radio Browser API](https://www.radio-browser.info/) | Free, no key required |
 
@@ -85,11 +85,14 @@ cd noel-cast
 # 1. Install all dependencies (creates Python venv + installs npm packages)
 npm run setup
 
-# 2. Start backend + frontend together
+# 2. Start backend + frontend together (Web mode)
 npm run dev
+
+# OR: Start backend + frontend together (Mobile Expo Go mode)
+npm run dev:mobile
 ```
 
-That's it. Two terminals open automatically — one for the API, one for Expo web — with coloured prefixed output.
+That's it. Two terminals open automatically — one for the API, one for Expo — with coloured prefixed output.
 
 | Service | URL |
 |---|---|
@@ -143,12 +146,16 @@ npm run web
 
 ---
 
-## 📦 Building for Android (APK)
+## 📦 Building for Android (APK & AAB)
 
-> Requires the `android/` folder to be generated first via `expo run:android`.
+> Requires the `android/` folder to be generated first.
 
-1. Bump the version in `package.json`
-2. Run the build:
+1. Generate the Android project and run it locally:
+```bash
+npm run android
+```
+
+2. To build an APK or AAB, bump the version in `package.json` (if needed) and run:
 
 ```bash
 # APK (sideload / Play Store internal testing)
@@ -160,7 +167,7 @@ npm run android:bundle
 
 The `version:sync` script automatically syncs the version from `package.json` → `app.json` → `android/app/build.gradle` before each build.
 
-Output APK: `android/app/build/outputs/apk/release/app-release.apk`
+Output APK: `frontend/android/app/build/outputs/apk/release/app-release.apk`
 
 ---
 

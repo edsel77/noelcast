@@ -34,13 +34,13 @@ export default function RootLayout() {
               <meta property="og:description" content="A premium Christmas radio streaming application." />
               <meta property="og:type" content="website" />
               <meta property="og:url" content="https://noelcast.driftapps.xyz" />
-              <meta property="og:image" content="https://noelcast.driftapps.xyz/favicon.ico" />
+              <meta property="og:image" content="https://noelcast.driftapps.xyz/noelcast-feature-image.png" />
               
               {/* Twitter Card */}
               <meta name="twitter:card" content="summary" />
               <meta name="twitter:title" content="NoelCast - Christmas Radio" />
               <meta name="twitter:description" content="A premium Christmas radio streaming application." />
-              <meta name="twitter:image" content="https://noelcast.driftapps.xyz/favicon.ico" />
+              <meta name="twitter:image" content="https://noelcast.driftapps.xyz/noelcast-feature-image.png" />
             </Head>
             <StatusBar style="light" />
             <Stack screenOptions={{ headerShown: false }} />

@@ -8,7 +8,7 @@ Expo (React Native) app for [NoelCast](../README.md) — a Christmas radio strea
 
 - **[Expo](https://expo.dev/) ~57** (Managed workflow)
 - **[Expo Router](https://expo.github.io/router/)** — file-based navigation
-- **[expo-av](https://docs.expo.dev/versions/v57.0.0/sdk/av/)** — audio streaming
+- **[expo-audio](https://docs.expo.dev/versions/latest/sdk/audio/)** — audio streaming
 - **[expo-linear-gradient](https://docs.expo.dev/versions/v57.0.0/sdk/linear-gradient/)** — UI gradients
 - **[react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/)** — animations
 - **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)** — persistent favorites
@@ -32,7 +32,7 @@ frontend/
 │   └── SnowParticles.tsx      # Decorative snow animation
 │
 ├── contexts/
-│   ├── PlayerContext.tsx      # Audio playback state (expo-av)
+│   ├── PlayerContext.tsx      # Audio playback state (expo-audio)
 │   └── FavoritesContext.tsx   # Favorites stored in AsyncStorage
 │
 ├── hooks/

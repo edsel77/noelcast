@@ -5,11 +5,15 @@
   "private": true,
   "scripts": {
     "dev": "concurrently --names \"API,EXPO\" --prefix-colors \"cyan,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:mobile": "concurrently --names \"API,EXPO\" --prefix-colors \"cyan,green\" \"npm run dev:backend\" \"cd frontend && npm start\"",
     "dev:backend": "node scripts/start-backend.js",
     "dev:frontend": "cd frontend && npm run web",
+    "android": "cd frontend && npm run android",
+    "android:apk": "cd frontend && npm run android:apk",
+    "android:bundle": "cd frontend && npm run android:bundle",
     "install:frontend": "cd frontend && npm install",
     "setup": "node scripts/setup.js",
-    "kill": "kill-port 8000 8081"
+    "kill": "kill-port 8000 8081 8082"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

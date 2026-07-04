@@ -1,15 +1,16 @@
 import React from 'react';
 import {
   Image,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { EqualizerBars } from './EqualizerBars';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * MiniPlayer — persistent bottom bar shown when a station is selected.
@@ -17,11 +18,16 @@ import { EqualizerBars } from './EqualizerBars';
  */
 export function MiniPlayer() {
   const { currentStation, isPlaying, isLoading, togglePlayPause, openPlayer, stopPlayer } = usePlayer();
+  const insets = useSafeAreaInsets();
 
   if (!currentStation) return null;
 
   return (
-    <TouchableOpacity style={styles.container} onPress={openPlayer} activeOpacity={0.9}>
+    <Pressable
+      style={[styles.container, { paddingBottom: Math.max(insets.bottom + 12, 24) }]}
+      onPress={openPlayer}
+      android_ripple={{ color: 'rgba(255,255,255,0.08)', borderless: false }}
+    >
       {/* Logo */}
       <Image
         source={require('@/assets/images/station-placeholder.png')}
@@ -45,10 +51,11 @@ export function MiniPlayer() {
       </View>
 
       {/* Play/Pause */}
-      <TouchableOpacity
+      <Pressable
         style={styles.btn}
         onPress={togglePlayPause}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: true, radius: 20 }}
       >
         {isLoading ? (
           <Ionicons name="ellipsis-horizontal" size={24} color={Colors.accent} />
@@ -59,17 +66,18 @@ export function MiniPlayer() {
             color={Colors.accent}
           />
         )}
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Stop */}
-      <TouchableOpacity
+      <Pressable
         style={styles.btn}
         onPress={stopPlayer}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: true, radius: 20 }}
       >
         <Ionicons name="stop" size={22} color={Colors.textMuted} />
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </Pressable>
+    </Pressable>
   );
 }
 

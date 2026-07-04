@@ -6,7 +6,7 @@ const { width: SW, height: SH } = Dimensions.get('window');
 const NUM_FLAKES = Platform.OS === 'web' ? 30 : 20;
 
 interface Flake {
-  x: Animated.Value;
+  x: number;
   y: Animated.Value;
   opacity: Animated.Value;
   size: number;
@@ -16,7 +16,7 @@ interface Flake {
 
 function createFlake(): Flake {
   return {
-    x: new Animated.Value(Math.random() * SW),
+    x: Math.random() * SW,
     y: new Animated.Value(-20),
     opacity: new Animated.Value(0),
     size: Math.random() * 5 + 3,

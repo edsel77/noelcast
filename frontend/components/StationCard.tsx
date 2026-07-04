@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Image,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,10 +36,10 @@ export function StationCard({ station, queue, style }: StationCardProps) {
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={[styles.card, isCurrent && styles.cardActive, style]}
       onPress={handlePress}
-      activeOpacity={0.75}
+      android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
     >
       {/* Station Logo */}
       <View style={styles.logoContainer}>
@@ -85,18 +85,19 @@ export function StationCard({ station, queue, style }: StationCardProps) {
       </View>
 
       {/* Favorite button */}
-      <TouchableOpacity
+      <Pressable
         style={styles.favBtn}
         onPress={() => toggleFavorite(station)}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        android_ripple={{ color: 'rgba(255,255,255,0.15)', borderless: true, radius: 20 }}
       >
         <Ionicons
           name={favored ? 'heart' : 'heart-outline'}
           size={22}
           color={favored ? Colors.primary : Colors.textMuted}
         />
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </Pressable>
+    </Pressable>
   );
 }
 

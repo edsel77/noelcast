@@ -25,7 +25,6 @@ import { SnowParticles } from '@/components/SnowParticles';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
-import { FullScreenPlayer } from '@/components/FullScreenPlayer';
 
 type TabType = 'all' | 'favorites';
 
@@ -145,7 +144,7 @@ export default function HomeScreen() {
   };
 
   // ── Mobile/Tablet Header ────────────────────────────────────────────
-  const MobileHeader = () => (
+  const renderMobileHeader = () => (
     <>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerTopRow}>
@@ -236,7 +235,7 @@ export default function HomeScreen() {
   );
 
   // ── Station list ──────────────────────────────────────────────────────────────
-  const StationList = ({ bottomPad }: { bottomPad: number }) => (
+  const renderStationList = (bottomPad: number) => (
     stationsLoading && displayList.length === 0 ? (
       <View style={styles.loadingWrap}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -391,7 +390,7 @@ export default function HomeScreen() {
             </View>
 
             {/* Station grid */}
-            <StationList bottomPad={currentStation ? 88 + 20 : 20} />
+            {renderStationList(currentStation ? 88 + 20 : 20)}
           </View>
 
           {/* ── Right Sidebar (Favorites) ── */}
@@ -510,10 +509,9 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <LinearGradient colors={['#3D0000', '#1A0000', '#0A0A0A']} style={styles.headerGradient} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} />
       <SnowParticles />
-      <MobileHeader />
-      <StationList bottomPad={currentStation ? 90 : insets.bottom + 20} />
+      {renderMobileHeader()}
+      {renderStationList(currentStation ? 90 : insets.bottom + 20)}
       <MiniPlayer />
-      <FullScreenPlayer />
     </View>
   );
 }
