@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import { Station } from '@/constants/types';
 
@@ -23,7 +24,8 @@ interface PlayerContextValue extends PlayerState {
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
-export function PlayerProvider({ children }: { children: React.ReactNode }) {
+// Inner provider that calls expo-audio hooks — only mounted on the client
+function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
   const player = useAudioPlayer(null, {
     keepAudioSessionActive: true,
   });
@@ -45,7 +47,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       // We consider it loading if it's buffering, or if a station is selected but not loaded yet
       const newIsLoading = playerStatus.isBuffering || (!playerStatus.isLoaded && prev.currentStation !== null);
       const newError = playerStatus.error || null;
-      
+
       if (prev.isPlaying === newIsPlaying && prev.isLoading === newIsLoading && prev.error === newError) {
         return prev;
       }
@@ -53,7 +55,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         ...prev,
         isPlaying: newIsPlaying,
         isLoading: newIsLoading,
-        error: newError
+        error: newError,
       };
     });
   }, [playerStatus.playing, playerStatus.isBuffering, playerStatus.isLoaded, playerStatus.error]);
@@ -147,8 +149,27 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function usePlayer(): PlayerContextValue {
-  const ctx = useContext(PlayerContext);
-  if (!ctx) throw new Error('usePlayer must be used within PlayerProvider');
-  return ctx;
+// Outer shell: on web, wait until the component is mounted (client-side) before
+// rendering AudioPlayerProvider, so expo-audio hooks never run during SSR.
+export function PlayerProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(Platform.OS !== 'web');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    // Render a null-context shell during SSR / before hydration
+    return (
+      <PlayerContext.Provider value={null}>
+        {children}
+      </PlayerContext.Provider>
+    );
+  }
+
+  return <AudioPlayerProvider>{children}</AudioPlayerProvider>;
+}
+
+export function usePlayer(): PlayerContextValue | null {
+  return useContext(PlayerContext);
 }

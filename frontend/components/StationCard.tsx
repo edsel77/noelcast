@@ -21,18 +21,18 @@ interface StationCardProps {
 }
 
 export function StationCard({ station, queue, style }: StationCardProps) {
-  const { playStation, currentStation, isPlaying } = usePlayer();
+  const player = usePlayer();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const isCurrentlyPlaying =
-    currentStation?.stationuuid === station.stationuuid && isPlaying;
-  const isCurrent = currentStation?.stationuuid === station.stationuuid;
+    !!player && player.currentStation?.stationuuid === station.stationuuid && player.isPlaying;
+  const isCurrent = !!player && player.currentStation?.stationuuid === station.stationuuid;
   const favored = isFavorite(station.stationuuid);
   const countryCode = station.countrycode?.toLowerCase();
   const flagUrl = countryCode ? `https://flagcdn.com/w40/${countryCode}.png` : null;
 
   const handlePress = () => {
-    playStation(station, queue);
+    player?.playStation(station, queue);
   };
 
   return (

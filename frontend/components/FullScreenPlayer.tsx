@@ -189,10 +189,11 @@ export function FullScreenPlayer({ inline = false }: { inline?: boolean }) {
   const { width: SW } = useWindowDimensions();
   const logoSize = Math.min(SW * 0.6, 280);
   const insets = useSafeAreaInsets();
-  const { currentStation, isPlaying, isLoading, isPlayerVisible, togglePlayPause, stopPlayer, playNext, playPrevious, closePlayer } = usePlayer();
+  const player = usePlayer();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  if (!currentStation) return null;
+  if (!player || !player.currentStation) return null;
+  const { currentStation, isPlaying, isLoading, isPlayerVisible, togglePlayPause, stopPlayer, playNext, playPrevious, closePlayer } = player;
 
   const favored = isFavorite(currentStation.stationuuid);
 

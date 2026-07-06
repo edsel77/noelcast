@@ -32,7 +32,11 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { filtered, isLoading: stationsLoading, error, searchQuery, setSearchQuery, refresh, availableCountries, selectedCountry, setSelectedCountry } = useStations();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
-  const { currentStation, isPlaying, isLoading, togglePlayPause, playNext, playPrevious, playStation } = usePlayer();
+  const player = usePlayer();
+  const { currentStation, isPlaying, isLoading, togglePlayPause, playNext, playPrevious, playStation } = player ?? {
+    currentStation: null, isPlaying: false, isLoading: false,
+    togglePlayPause: async () => {}, playNext: async () => {}, playPrevious: async () => {}, playStation: async () => {},
+  };
   const { isTablet, isDesktop, width } = useBreakpoint();
   const [isMounted, setIsMounted] = useState(false);
 

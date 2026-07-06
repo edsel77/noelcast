@@ -17,10 +17,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * Tapping it opens the full-screen player.
  */
 export function MiniPlayer() {
-  const { currentStation, isPlaying, isLoading, togglePlayPause, openPlayer, stopPlayer } = usePlayer();
+  const player = usePlayer();
   const insets = useSafeAreaInsets();
 
-  if (!currentStation) return null;
+  if (!player || !player.currentStation) return null;
+  const { currentStation, isPlaying, isLoading, togglePlayPause, openPlayer, stopPlayer } = player;
 
   return (
     <Pressable
