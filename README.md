@@ -42,33 +42,22 @@
 
 ### Web Experience
 
-<p align="center">
-  <img src="screenshots/web-home.PNG" width="45%" alt="Web Home Screen" />
-  &nbsp;
-  <img src="screenshots/web-player.PNG" width="45%" alt="Web Player Screen" />
-</p>
+| Home | Player |
+|:---:|:---:|
+| ![Web Home](screenshots/web-home.PNG) | ![Web Player](screenshots/web-player.PNG) |
 
-<p align="center">
-  <img src="screenshots/web-asknoel-1.PNG" width="30%" alt="Ask NoelCast - Chat" />
-  &nbsp;
-  <img src="screenshots/web-asknoel-2.PNG" width="30%" alt="Ask NoelCast - Results" />
-  &nbsp;
-  <img src="screenshots/web-asknoel-3.PNG" width="30%" alt="Ask NoelCast - Recommendation" />
-</p>
+**Ask NoelCast AI Recommender**
+
+| Chat | Results | Recommendation |
+|:---:|:---:|:---:|
+| ![Ask 1](screenshots/web-asknoel-1.PNG) | ![Ask 2](screenshots/web-asknoel-2.PNG) | ![Ask 3](screenshots/web-asknoel-3.PNG) |
 
 ### Mobile Experience
 
-<p align="center">
-  <img src="screenshots/mobile-home.PNG" width="18%" alt="Mobile Home Screen" />
-  &nbsp;
-  <img src="screenshots/mobile-player.PNG" width="18%" alt="Mobile Player Screen" />
-  &nbsp;
-  <img src="screenshots/mobile-favorites.PNG" width="18%" alt="Mobile Favorites Screen" />
-  &nbsp;
-  <img src="screenshots/mobile-asknoel-1.PNG" width="18%" alt="Ask NoelCast Mobile - Chat" />
-  &nbsp;
-  <img src="screenshots/mobile-asknoel-2.PNG" width="18%" alt="Ask NoelCast Mobile - Results" />
-</p>
+| Home | Player | Favorites | Ask NoelCast | Ask NoelCast |
+|:---:|:---:|:---:|:---:|:---:|
+| ![Mobile Home](screenshots/mobile-home.PNG) | ![Mobile Player](screenshots/mobile-player.PNG) | ![Mobile Favorites](screenshots/mobile-favorites.PNG) | ![Ask 1](screenshots/mobile-asknoel-1.PNG) | ![Ask 2](screenshots/mobile-asknoel-2.PNG) |
+
 
 ---
 
