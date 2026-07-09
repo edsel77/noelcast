@@ -15,42 +15,44 @@ interface UseStationsResult {
   refresh: () => void;
 }
 
+// Module-level cache to prevent Strict Mode double-fetching
+let initialFetchPromise: Promise<StationsResponse> | null = null;
+
 export function useStations(): UseStationsResult {
   const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
-  const fetchStations = useCallback(async () => {
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
-
+  const fetchStations = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/stations?limit=200`, {
-        signal: abortRef.current.signal,
-      });
+      let promise = initialFetchPromise;
+      
+      // If forcing refresh or no existing promise, create a new one
+      if (forceRefresh || !promise) {
+        promise = fetch(`${API_BASE_URL}/stations?limit=200`).then(async res => {
+          if (!res.ok) throw new Error(`Server error: ${res.status}`);
+          return res.json();
+        });
+        initialFetchPromise = promise;
+      }
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
-      const data: StationsResponse = await res.json();
+      const data = await promise;
       setStations(data.stations);
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        setError('Could not load stations. Please check your connection.');
-      }
+      setError('Could not load stations. Please check your connection.');
+      initialFetchPromise = null; // Clear cache on error so next try fetches again
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchStations();
-    return () => abortRef.current?.abort();
+    fetchStations(false);
   }, [fetchStations]);
 
   const availableCountries = Array.from(

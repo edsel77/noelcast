@@ -22,6 +22,7 @@ import { useStations } from '@/hooks/useStations';
 import { StationCard } from '@/components/StationCard';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { SnowParticles } from '@/components/SnowParticles';
+import { AskNoelCast } from '@/components/AskNoelCast';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
@@ -463,7 +464,7 @@ export default function HomeScreen() {
               <View style={styles.playerBarInfo}>
                 <Text style={styles.playerBarName} numberOfLines={1}>{currentStation.name?.trim()}</Text>
                 <Text style={styles.playerBarMeta} numberOfLines={1}>
-                  {currentStation.country ?? ''}{currentStation.codec ? ` • ${currentStation.codec}` : ''}
+                  {currentStation.country ?? ''}{currentStation.codec ? ` \u2022 ${currentStation.codec}` : ''}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => toggleFavorite(currentStation)} style={styles.playerBarFav}>
@@ -504,6 +505,9 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
+
+        {/* ── AI Station Recommender FAB ── */}
+        <AskNoelCast />
       </View>
     );
   }
@@ -516,6 +520,7 @@ export default function HomeScreen() {
       {renderMobileHeader()}
       {renderStationList(currentStation ? 90 : insets.bottom + 20)}
       <MiniPlayer />
+      <AskNoelCast />
     </View>
   );
 }

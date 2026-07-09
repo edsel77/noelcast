@@ -1,6 +1,7 @@
 """
 NoelCast Backend — FastAPI App
 Proxy for Christmas radio stations from Radio Browser API.
+Includes RAG-powered AI station recommender (POST /ask).
 """
 
 import os
@@ -11,8 +12,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from stations import get_christmas_stations
+import rag
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -26,14 +29,29 @@ _origins_env = os.getenv(
 ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()]
 
 
-# ── Startup: pre-warm cache ────────────────────────────────────────────────────
+# ── Startup: pre-warm cache + load RAG index ──────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🎄 NoelCast API starting up — pre-warming station cache...")
+    for attempt in range(1, 4):
+        try:
+            stations = await get_christmas_stations()
+            if stations:
+                logger.info("Station cache warmed: %d stations loaded.", len(stations))
+                break
+            logger.warning("Pre-warm attempt %d returned 0 stations — retrying...", attempt)
+        except Exception as exc:
+            logger.warning("Pre-warm attempt %d failed: %s", attempt, exc)
+        if attempt < 3:
+            import asyncio as _asyncio
+            await _asyncio.sleep(2)
+
+    logger.info("🤖 Loading RAG vector index...")
     try:
-        await get_christmas_stations()
+        rag.load_index()
     except Exception as exc:
-        logger.warning("Cache pre-warm failed (will retry on first request): %s", exc)
+        logger.warning("RAG index load failed (POST /ask will return graceful fallback): %s", exc)
+
     yield
     logger.info("🎄 NoelCast API shutting down.")
 
@@ -51,7 +69,7 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=r"https://.*\.netlify\.app",
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -122,3 +140,40 @@ async def get_station(station_uuid: str):
 async def cron_job():
     """Endpoint for cron jobs to keep the server alive."""
     return {"status": "ok", "message": "Server is alive."}
+
+
+# ── RAG: AI Station Recommender ───────────────────────────────────────────────
+class AskRequest(BaseModel):
+    query: str
+    k: int = 5  # number of stations to retrieve
+
+
+@app.post("/ask")
+async def ask_noelcast(body: AskRequest):
+    """
+    RAG-powered AI station recommender.
+    Accepts a natural language query and returns an AI-generated
+    recommendation with the top-K matching stations.
+
+    Example:
+        POST /ask
+        { "query": "cozy jazzy Christmas music" }
+    """
+    query = body.query.strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+    if len(query) > 300:
+        raise HTTPException(status_code=400, detail="Query too long (max 300 characters).")
+
+    try:
+        result = rag.ask(query, k=min(body.k, 10))
+        return JSONResponse(content=result)
+    except Exception as exc:
+        logger.error("RAG pipeline error: %s", exc)
+        raise HTTPException(status_code=500, detail="AI recommender encountered an error.")
+
+
+@app.get("/ask/status")
+async def ask_status():
+    """Returns whether the RAG index is loaded and ready."""
+    return {"ready": rag.is_ready()}

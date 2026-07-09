@@ -26,6 +26,7 @@
 ## ✨ Features
 
 - 🎶 **100+ Christmas radio stations** from around the world — sourced from the community-run [Radio Browser API](https://www.radio-browser.info/)
+- 🤖 **"Ask NoelCast" AI Recommender** — natural language station discovery powered by a custom RAG pipeline (FAISS + Llama 3.1)
 - 🔴 **Live streaming** — play any station instantly with a single tap
 - 🎅 **Full-screen player** — Spotify-style player with animated equalizer bars and a pulsing album art ring
 - ❄️ **Snow particles** — animated snowflakes throughout the app
@@ -33,24 +34,40 @@
 - 🔍 **Search** — tap the search icon to find stations by name, country, or genre tag
 - 🌍 **Country flags & bitrate info** on every station card
 - 📱 **Cross-platform** — runs on **Android** (APK) and **Web** (Netlify) from a single codebase
-- 🐍 **Python proxy backend** — caches & serves stations with CORS support
+- 🐍 **Python FastAPI backend** — caches stations, hosts the RAG vector index via AWS S3, and handles LLM generation
 
 ---
 
 ## 📸 Screenshots
 
 ### Web Experience
+
 <p align="center">
   <img src="screenshots/web-home.PNG" width="45%" alt="Web Home Screen" />
   &nbsp;
   <img src="screenshots/web-player.PNG" width="45%" alt="Web Player Screen" />
 </p>
 
-### Mobile Experience
 <p align="center">
-  <img src="screenshots/mobile-home.PNG" width="30%" alt="Mobile Home Screen" />
+  <img src="screenshots/web-asknoel-1.PNG" width="30%" alt="Ask NoelCast – Chat" />
   &nbsp;
-  <img src="screenshots/mobile-player.PNG" width="30%" alt="Mobile Player Screen" />
+  <img src="screenshots/web-asknoel-2.PNG" width="30%" alt="Ask NoelCast – Results" />
+  &nbsp;
+  <img src="screenshots/web-asknoel-3.PNG" width="30%" alt="Ask NoelCast – Recommendation" />
+</p>
+
+### Mobile Experience
+
+<p align="center">
+  <img src="screenshots/mobile-home.PNG" width="18%" alt="Mobile Home Screen" />
+  &nbsp;
+  <img src="screenshots/mobile-player.PNG" width="18%" alt="Mobile Player Screen" />
+  &nbsp;
+  <img src="screenshots/mobile-favorites.PNG" width="18%" alt="Mobile Favorites Screen" />
+  &nbsp;
+  <img src="screenshots/mobile-asknoel-1.PNG" width="18%" alt="Ask NoelCast Mobile – Chat" />
+  &nbsp;
+  <img src="screenshots/mobile-asknoel-2.PNG" width="18%" alt="Ask NoelCast Mobile – Results" />
 </p>
 
 ---
@@ -61,8 +78,9 @@
 |---|---|---|
 | **Frontend** | [Expo](https://expo.dev) (React Native) | [Netlify](https://netlify.com) (web) · Google Play (Android) |
 | **Backend** | [FastAPI](https://fastapi.tiangolo.com/) (Python) | [Render](https://render.com) |
-| **Audio** | [expo-audio](https://docs.expo.dev/versions/latest/sdk/audio/) | — |
+| **AI / RAG** | Groq (Llama 3.1) + FAISS + HuggingFace | Free inference, local embeddings |
 | **Storage** | [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) | localStorage on web |
+| **Vector Store** | [AWS S3](https://aws.amazon.com/s3/) (Free Tier) | Persists FAISS index for stateless deployments |
 | **Stations API** | [Radio Browser API](https://www.radio-browser.info/) | Free, no key required |
 
 ---
@@ -124,8 +142,11 @@ python -m venv ../.venv
 
 pip install -r requirements.txt
 
-# Copy env file
+# Copy env file and add your Groq/AWS API keys (required for RAG)
 cp .env.example .env
+
+# Build the AI Knowledge Base (fetches stations, builds FAISS index, uploads to S3)
+python scripts/build_knowledge_base.py
 
 # Start API server
 python -m uvicorn main:app --reload
@@ -194,8 +215,12 @@ Output APK: `frontend/android/app/build/outputs/apk/release/app-release.apk`
 ```
 noel-cast/
 ├── backend/                    # Python FastAPI backend
-│   ├── main.py                 # App entry, routes, CORS
-│   ├── stations.py             # Radio Browser API client + 1hr cache
+│   ├── main.py                 # App entry, routes, CORS, RAG endpoint
+│   ├── stations.py             # Radio Browser API client + cache
+│   ├── rag.py                  # RAG pipeline (embed, FAISS search, Groq LLM)
+│   ├── aws_storage.py          # AWS S3 integration via boto3
+│   ├── scripts/
+│   │   └── build_knowledge_base.py # One-time script to build vector index
 │   ├── requirements.txt
 │   ├── Procfile                # Render process file
 │   ├── render.yaml             # Render deployment config
@@ -209,12 +234,14 @@ noel-cast/
     │   ├── FullScreenPlayer.tsx # Spotify-style full-screen player
     │   ├── MiniPlayer.tsx      # Persistent mini player bar
     │   ├── StationCard.tsx     # Station list card
+    │   ├── AskNoelCast.tsx     # AI Chat Recommender modal & FAB
     │   └── SnowParticles.tsx   # Animated ❄ snowflakes
     ├── contexts/
     │   ├── PlayerContext.tsx   # Global audio player state
     │   └── FavoritesContext.tsx # Favorites (AsyncStorage / localStorage)
     ├── hooks/
-    │   └── useStations.ts      # Station fetching + search
+    │   ├── useStations.ts      # Station fetching + search
+    │   └── useAskNoelCast.ts   # Hook for calling /ask endpoint
     ├── constants/
     │   ├── Colors.ts           # Design tokens
     │   ├── types.ts            # TypeScript interfaces
