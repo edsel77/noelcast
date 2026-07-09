@@ -42,35 +42,46 @@
 
 ### Web Experience
 
-| Home | Player |
-|:---:|:---:|
-| ![Web Home](screenshots/web-home.png) | ![Web Player](screenshots/web-player.png) |
+<p align="center">
+  <img src="screenshots/web-home.png" width="45%" alt="Web Home Screen" />
+  &nbsp;
+  <img src="screenshots/web-player.png" width="45%" alt="Web Player Screen" />
+</p>
 
-**Ask NoelCast AI Recommender**
-
-| Chat | Results | Recommendation |
-|:---:|:---:|:---:|
-| ![Ask 1](screenshots/web-asknoel-1.png) | ![Ask 2](screenshots/web-asknoel-2.png) | ![Ask 3](screenshots/web-asknoel-3.png) |
+<p align="center">
+  <img src="screenshots/web-asknoel-1.png" width="30%" alt="Ask NoelCast – Chat" />
+  &nbsp;
+  <img src="screenshots/web-asknoel-2.png" width="30%" alt="Ask NoelCast – Results" />
+  &nbsp;
+  <img src="screenshots/web-asknoel-3.png" width="30%" alt="Ask NoelCast – Recommendation" />
+</p>
 
 ### Mobile Experience
 
-| Home | Player | Favorites | Ask NoelCast | Ask NoelCast |
-|:---:|:---:|:---:|:---:|:---:|
-| ![Mobile Home](screenshots/mobile-home.png) | ![Mobile Player](screenshots/mobile-player.png) | ![Mobile Favorites](screenshots/mobile-favorites.png) | ![Ask 1](screenshots/mobile-asknoel-1.png) | ![Ask 2](screenshots/mobile-asknoel-2.png) |
-
+<p align="center">
+  <img src="screenshots/mobile-home.png" width="18%" alt="Mobile Home Screen" />
+  &nbsp;
+  <img src="screenshots/mobile-player.png" width="18%" alt="Mobile Player Screen" />
+  &nbsp;
+  <img src="screenshots/mobile-favorites.png" width="18%" alt="Mobile Favorites Screen" />
+  &nbsp;
+  <img src="screenshots/mobile-asknoel-1.png" width="18%" alt="Ask NoelCast Mobile – Chat" />
+  &nbsp;
+  <img src="screenshots/mobile-asknoel-2.png" width="18%" alt="Ask NoelCast Mobile – Results" />
+</p>
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology | Deployment |
-|---|---|---|
-| **Frontend** | [Expo](https://expo.dev) (React Native) | [Netlify](https://netlify.com) (web) · Google Play (Android) |
-| **Backend** | [FastAPI](https://fastapi.tiangolo.com/) (Python) | [Render](https://render.com) |
-| **AI / RAG** | Groq (Llama 3.1) + FAISS + HuggingFace | Free inference, local embeddings |
-| **Storage** | [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) | localStorage on web |
-| **Vector Store** | [AWS S3](https://aws.amazon.com/s3/) (Free Tier) | Persists FAISS index for stateless deployments |
-| **Stations API** | [Radio Browser API](https://www.radio-browser.info/) | Free, no key required |
+| Layer            | Technology                                                                                               | Deployment                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Frontend**     | [Expo](https://expo.dev) (React Native)                                                                  | [Netlify](https://netlify.com) (web) · Google Play (Android) |
+| **Backend**      | [FastAPI](https://fastapi.tiangolo.com/) (Python)                                                        | [Render](https://render.com)                                 |
+| **AI / RAG**     | Groq (Llama 3.1) + FAISS + HuggingFace                                                                   | Free inference, local embeddings                             |
+| **Storage**      | [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) | localStorage on web                                          |
+| **Vector Store** | [AWS S3](https://aws.amazon.com/s3/) (Free Tier)                                                         | Persists FAISS index for stateless deployments               |
+| **Stations API** | [Radio Browser API](https://www.radio-browser.info/)                                                     | Free, no key required                                        |
 
 ---
 
@@ -101,19 +112,19 @@ npm run dev:mobile
 
 That's it. Two terminals open automatically — one for the API, one for Expo — with coloured prefixed output.
 
-| Service | URL |
-|---|---|
-| Frontend (web) | http://localhost:8081 |
-| Backend API | http://localhost:8000 |
+| Service            | URL                        |
+| ------------------ | -------------------------- |
+| Frontend (web)     | http://localhost:8081      |
+| Backend API        | http://localhost:8000      |
 | API Docs (Swagger) | http://localhost:8000/docs |
 
 **API Endpoints:**
 
-| Endpoint | Description |
-|---|---|
-| `GET /health` | Health check |
-| `GET /stations` | List Christmas stations — supports `?q=`, `?limit=`, `?offset=` |
-| `GET /stations/{uuid}` | Get a single station by UUID |
+| Endpoint               | Description                                                     |
+| ---------------------- | --------------------------------------------------------------- |
+| `GET /health`          | Health check                                                    |
+| `GET /stations`        | List Christmas stations — supports `?q=`, `?limit=`, `?offset=` |
+| `GET /stations/{uuid}` | Get a single station by UUID                                    |
 
 ---
 
@@ -142,6 +153,7 @@ python -m uvicorn main:app --reload
 ```
 
 > **Windows PowerShell note:** If `activate` fails with an execution policy error, run once:
+>
 > ```powershell
 > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 > ```
@@ -161,6 +173,7 @@ npm run web
 > Requires the `android/` folder to be generated first.
 
 1. Generate the Android project and run it locally:
+
 ```bash
 npm run android
 ```
