@@ -49,11 +49,11 @@
 </p>
 
 <p align="center">
-  <img src="screenshots/web-asknoel-1.PNG" width="30%" alt="Ask NoelCast – Chat" />
+  <img src="screenshots/web-asknoel-1.PNG" width="30%" alt="Ask NoelCast - Chat" />
   &nbsp;
-  <img src="screenshots/web-asknoel-2.PNG" width="30%" alt="Ask NoelCast – Results" />
+  <img src="screenshots/web-asknoel-2.PNG" width="30%" alt="Ask NoelCast - Results" />
   &nbsp;
-  <img src="screenshots/web-asknoel-3.PNG" width="30%" alt="Ask NoelCast – Recommendation" />
+  <img src="screenshots/web-asknoel-3.PNG" width="30%" alt="Ask NoelCast - Recommendation" />
 </p>
 
 ### Mobile Experience
@@ -65,9 +65,9 @@
   &nbsp;
   <img src="screenshots/mobile-favorites.PNG" width="18%" alt="Mobile Favorites Screen" />
   &nbsp;
-  <img src="screenshots/mobile-asknoel-1.PNG" width="18%" alt="Ask NoelCast Mobile – Chat" />
+  <img src="screenshots/mobile-asknoel-1.PNG" width="18%" alt="Ask NoelCast Mobile - Chat" />
   &nbsp;
-  <img src="screenshots/mobile-asknoel-2.PNG" width="18%" alt="Ask NoelCast Mobile – Results" />
+  <img src="screenshots/mobile-asknoel-2.PNG" width="18%" alt="Ask NoelCast Mobile - Results" />
 </p>
 
 ---
