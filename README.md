@@ -44,19 +44,19 @@
 
 | Home | Player |
 |:---:|:---:|
-| ![Web Home](screenshots/web-home.PNG) | ![Web Player](screenshots/web-player.PNG) |
+| ![Web Home](screenshots/web-home.png) | ![Web Player](screenshots/web-player.png) |
 
 **Ask NoelCast AI Recommender**
 
 | Chat | Results | Recommendation |
 |:---:|:---:|:---:|
-| ![Ask 1](screenshots/web-asknoel-1.PNG) | ![Ask 2](screenshots/web-asknoel-2.PNG) | ![Ask 3](screenshots/web-asknoel-3.PNG) |
+| ![Ask 1](screenshots/web-asknoel-1.png) | ![Ask 2](screenshots/web-asknoel-2.png) | ![Ask 3](screenshots/web-asknoel-3.png) |
 
 ### Mobile Experience
 
 | Home | Player | Favorites | Ask NoelCast | Ask NoelCast |
 |:---:|:---:|:---:|:---:|:---:|
-| ![Mobile Home](screenshots/mobile-home.PNG) | ![Mobile Player](screenshots/mobile-player.PNG) | ![Mobile Favorites](screenshots/mobile-favorites.PNG) | ![Ask 1](screenshots/mobile-asknoel-1.PNG) | ![Ask 2](screenshots/mobile-asknoel-2.PNG) |
+| ![Mobile Home](screenshots/mobile-home.png) | ![Mobile Player](screenshots/mobile-player.png) | ![Mobile Favorites](screenshots/mobile-favorites.png) | ![Ask 1](screenshots/mobile-asknoel-1.png) | ![Ask 2](screenshots/mobile-asknoel-2.png) |
 
 
 ---
