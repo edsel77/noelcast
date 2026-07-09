@@ -104,10 +104,11 @@ async def fetch_stations() -> list[dict]:
 
 
 def build_embeddings(stations: list[dict]):
-    print("\n🤖 Loading sentence-transformers model (all-MiniLM-L6-v2)...")
-    print("   (First run downloads ~90MB — subsequent runs are instant)")
-    from sentence_transformers import SentenceTransformer  # type: ignore
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    print("\n🤖 Loading fastembed model (all-MiniLM-L6-v2)...")
+    print("   (Uses ONNX Runtime — much lighter than PyTorch, first run downloads ~45MB)")
+    from fastembed import TextEmbedding  # type: ignore
+    import numpy as np
+    model = TextEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
     print("   → Model loaded.")
 
     print("\n📝 Building station documents...")
@@ -116,12 +117,8 @@ def build_embeddings(stations: list[dict]):
 
     print("\n⚡ Embedding documents (this may take a minute)...")
     t0 = time.time()
-    embeddings = model.encode(
-        documents,
-        normalize_embeddings=True,
-        show_progress_bar=True,
-        batch_size=64,
-    )
+    # fastembed.embed() returns a generator of numpy arrays
+    embeddings = np.array(list(model.embed(documents)), dtype="float32")
     elapsed = time.time() - t0
     print(f"   → Embeddings complete in {elapsed:.1f}s. Shape: {embeddings.shape}")
 

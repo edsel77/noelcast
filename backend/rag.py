@@ -22,7 +22,7 @@ INDEX_PATH = DATA_DIR / "faiss.index"
 META_PATH = DATA_DIR / "stations_meta.json"
 
 # ── Module-level singletons (loaded once) ─────────────────────────────────────
-_model = None          # sentence-transformers model
+_model = None          # fastembed embedding model
 _faiss_index = None    # FAISS index
 _stations_meta: list[dict] = []  # Station metadata for retrieved docs
 
@@ -30,14 +30,21 @@ _stations_meta: list[dict] = []  # Station metadata for retrieved docs
 GROQ_MODEL = "llama-3.1-8b-instant"   # Free tier — fast & capable
 GROQ_MAX_TOKENS = 512
 
+# ── Embedding model name (must match what build_knowledge_base.py used) ───────
+EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
 
 def _load_model():
-    """Load sentence-transformers model (cached after first load)."""
+    """Load fastembed model (cached after first load).
+    
+    fastembed uses ONNX Runtime instead of PyTorch — uses ~100MB RAM vs ~500MB,
+    making it safe for Render's free tier (512MB limit).
+    """
     global _model
     if _model is None:
-        logger.info("Loading sentence-transformers model (all-MiniLM-L6-v2)...")
-        from sentence_transformers import SentenceTransformer  # type: ignore
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        logger.info("Loading fastembed model (%s)...", EMBED_MODEL)
+        from fastembed import TextEmbedding  # type: ignore
+        _model = TextEmbedding(model_name=EMBED_MODEL)
         logger.info("✅ Embedding model loaded.")
     return _model
 
@@ -89,42 +96,12 @@ def is_ready() -> bool:
 
 
 def embed_query(text: str):
-    """Embed a user query into a dense vector."""
+    """Embed a user query into a dense vector using fastembed."""
     import numpy as np
-    
-    # Render Free Tier has 512MB RAM, loading sentence-transformers locally causes OOM.
-    # We use the free HuggingFace API in production to embed queries instead.
-    if os.getenv("RENDER") or os.getenv("HF_TOKEN"):
-        try:
-            import httpx
-            # The exact model used to build the index
-            api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
-            headers = {}
-            hf_token = os.getenv("HF_TOKEN")
-            if hf_token:
-                headers["Authorization"] = f"Bearer {hf_token}"
-                
-            response = httpx.post(api_url, headers=headers, json={"inputs": [text]}, timeout=10.0)
-            if response.status_code == 200:
-                vec = response.json()
-                # API returns list of lists (batch), we want the first item
-                if isinstance(vec, list) and len(vec) > 0:
-                    if isinstance(vec[0], list):
-                        vec = vec[0]
-                    return np.array([vec], dtype="float32")
-            else:
-                logger.error(f"HF API returned {response.status_code}: {response.text}")
-        except Exception as exc:
-            logger.error(f"Failed to call HF Inference API: {exc}")
-            
-        if os.getenv("RENDER"):
-            # Do NOT fall back to local model on Render to prevent OOM crashing the whole server
-            raise RuntimeError("Hugging Face API failed and local fallback is disabled on Render.")
-            
-    # Fallback to local model (for local development or if API fails)
     model = _load_model()
-    vec = model.encode([text], normalize_embeddings=True)
-    return np.array(vec, dtype="float32")
+    # fastembed.embed() returns a generator of numpy arrays
+    vecs = list(model.embed([text]))
+    return np.array([vecs[0]], dtype="float32")
 
 
 def retrieve(query: str, k: int = 5) -> list[dict]:
