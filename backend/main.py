@@ -145,7 +145,8 @@ async def cron_job():
 # ── RAG: AI Station Recommender ───────────────────────────────────────────────
 class AskRequest(BaseModel):
     query: str
-    k: int = 5  # number of stations to retrieve
+    k: int = 5              # number of stations to retrieve
+    model: str = "groq"     # "groq" (Llama 3.1 8B) | "gemini" (Gemini 2.0 Flash)
 
 
 @app.post("/ask")
@@ -166,7 +167,7 @@ async def ask_noelcast(body: AskRequest):
         raise HTTPException(status_code=400, detail="Query too long (max 300 characters).")
 
     try:
-        result = rag.ask(query, k=min(body.k, 10))
+        result = rag.ask(query, k=min(body.k, 10), model=body.model)
         return JSONResponse(content=result)
     except Exception as exc:
         logger.error("RAG pipeline error: %s", exc)

@@ -30,6 +30,10 @@ _stations_meta: list[dict] = []  # Station metadata for retrieved docs
 GROQ_MODEL = "llama-3.1-8b-instant"   # Free tier — fast & capable
 GROQ_MAX_TOKENS = 512
 
+# ── Gemini config ─────────────────────────────────────────────────────────────
+GEMINI_MODEL = "gemini-2.0-flash"     # Free tier — fast & multimodal
+GEMINI_MAX_TOKENS = 512
+
 # ── Embedding model name (must match what build_knowledge_base.py used) ───────
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -143,11 +147,18 @@ def _build_context(stations: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_answer(query: str, stations: list[dict]) -> str:
+def generate_answer(query: str, stations: list[dict], model: str = "groq") -> str:
     """
-    Call the Groq LLM (Llama 3.1 8B) with retrieved station context
-    to generate a friendly, personalised recommendation.
+    Dispatch to the correct LLM provider based on `model`.
+    Supported values: "groq" (Llama 3.1 8B) | "gemini" (Gemini 2.0 Flash)
     """
+    if model == "gemini":
+        return _generate_answer_gemini(query, stations)
+    return _generate_answer_groq(query, stations)
+
+
+def _generate_answer_groq(query: str, stations: list[dict]) -> str:
+    """Call the Groq LLM (Llama 3.1 8B) with retrieved station context."""
     groq_key = os.getenv("GROQ_API_KEY")
     if not groq_key:
         # Fallback: return a simple template without LLM
@@ -197,10 +208,58 @@ def generate_answer(query: str, stations: list[dict]) -> str:
         )
 
 
-def ask(query: str, k: int = 5) -> dict:
+def _generate_answer_gemini(query: str, stations: list[dict]) -> str:
+    """Call Google Gemini 2.0 Flash with retrieved station context."""
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        names = [s.get("name", "Unknown") for s in stations[:3]]
+        return (
+            f"Based on your vibe, here are some great Christmas stations: "
+            + ", ".join(names)
+            + ". Tap any to start listening! 🎄"
+        )
+
+    try:
+        import google.generativeai as genai  # type: ignore
+        genai.configure(api_key=gemini_key)
+
+        context = _build_context(stations)
+        prompt = (
+            "You are NoelCast's cheerful AI music guide. "
+            "You help users find Christmas radio stations that match their vibe. "
+            "Keep responses warm, short (2-3 sentences), and festive. "
+            "Always mention the station names from the context. "
+            "End with a Christmas emoji.\n\n"
+            f"The user is looking for: \"{query}\"\n\n"
+            f"Here are the best matching stations from our library:\n{context}\n\n"
+            f"Write a short, friendly recommendation that mentions the station names."
+        )
+
+        gemini = genai.GenerativeModel(
+            model_name=GEMINI_MODEL,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=GEMINI_MAX_TOKENS,
+                temperature=0.7,
+            ),
+        )
+        response = gemini.generate_content(prompt)
+        return response.text.strip()
+
+    except Exception as exc:
+        logger.error("Gemini generation failed: %s", exc)
+        names = [s.get("name", "Unknown") for s in stations[:3]]
+        return (
+            f"Here are stations that match your vibe: "
+            + ", ".join(names)
+            + " 🎄"
+        )
+
+
+def ask(query: str, k: int = 5, model: str = "groq") -> dict:
     """
     Full RAG pipeline entrypoint.
-    Returns { answer: str, stations: list[dict] }
+    `model` must be "groq" or "gemini" (defaults to "groq" for backward compat).
+    Returns { answer: str, stations: list[dict], model: str }
     """
     if not is_ready():
         return {
@@ -211,13 +270,15 @@ def ask(query: str, k: int = 5) -> dict:
             ),
             "stations": [],
             "ready": False,
+            "model": model,
         }
 
     stations = retrieve(query, k=k)
-    answer = generate_answer(query, stations)
+    answer = generate_answer(query, stations, model=model)
 
     return {
         "answer": answer,
         "stations": stations,
         "ready": True,
+        "model": model,
     }

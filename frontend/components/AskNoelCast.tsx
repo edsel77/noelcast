@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Animated,
   Image,
@@ -14,12 +14,18 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Station } from '@/constants/types';
 import { useAskNoelCast } from '@/hooks/useAskNoelCast';
+import { type AskModel } from '@/hooks/useAskNoelCast';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { EqualizerBars } from './EqualizerBars';
+
+const MODEL_STORAGE_KEY = 'noelcast_selected_model';
+const QUERY_STORAGE_KEY = 'noelcast_ask_query';
 
 const SUGGESTIONS = [
   'Cozy jazz Christmas vibes ☕',
@@ -32,12 +38,30 @@ const SUGGESTIONS = [
 export function AskNoelCast() {
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedModel, setSelectedModel] = useState<AskModel>('groq');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { ask, loading, error, result, reset } = useAskNoelCast();
   const player = usePlayer();
   const { playStation } = player ?? { playStation: async () => {} };
+  const hasActivePlayer = !!player?.currentStation;
   const inputRef = useRef<TextInput>(null);
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
+
+  // Persist model selection across sessions
+  useEffect(() => {
+    AsyncStorage.getItem(MODEL_STORAGE_KEY).then((saved) => {
+      if (saved === 'groq' || saved === 'gemini') setSelectedModel(saved);
+    });
+    AsyncStorage.getItem(QUERY_STORAGE_KEY).then((saved) => {
+      if (saved) setQuery(saved);
+    });
+  }, []);
+
+  const handleModelSelect = (model: AskModel) => {
+    setSelectedModel(model);
+    AsyncStorage.setItem(MODEL_STORAGE_KEY, model);
+  };
 
   // Pulse animation for the FAB
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -55,8 +79,6 @@ export function AskNoelCast() {
   };
 
   const openModal = () => {
-    reset();
-    setQuery('');
     setVisible(true);
     startPulse();
   };
@@ -68,7 +90,8 @@ export function AskNoelCast() {
 
   const handleAsk = async () => {
     if (!query.trim() || loading) return;
-    await ask(query);
+    AsyncStorage.setItem(QUERY_STORAGE_KEY, query);
+    await ask(query, selectedModel);
   };
 
   const handleSuggestion = (text: string) => {
@@ -84,7 +107,7 @@ export function AskNoelCast() {
   return (
     <>
       {/* ── Floating Action Button ── */}
-      <Animated.View style={[styles.fab, { transform: [{ scale: pulseAnim }] }]}>
+      <Animated.View style={[styles.fab, { transform: [{ scale: pulseAnim }], bottom: hasActivePlayer ? 110 : 40 }]}>
         <TouchableOpacity
           id="ask-noelcast-fab"
           onPress={openModal}
@@ -152,15 +175,61 @@ export function AskNoelCast() {
             </TouchableOpacity>
           </View>
 
-          {/* RAG badge */}
+          {/* RAG badge + model selector */}
           <View style={styles.ragBadgeRow}>
             <View style={styles.ragBadge}>
               <Ionicons name="sparkles" size={11} color={Colors.accent} />
-              <Text style={styles.ragBadgeText}>Powered by RAG · FAISS · Llama 3.1</Text>
+              <Text style={styles.ragBadgeText}>
+                RAG · FAISS · {selectedModel === 'gemini' ? 'Gemini 2.0' : 'Llama 3.1'}
+              </Text>
             </View>
             <View style={[styles.ragBadge, { backgroundColor: 'rgba(255,153,0,0.12)', borderColor: 'rgba(255,153,0,0.3)' }]}>
               <Ionicons name="cloud" size={11} color="#FF9900" />
               <Text style={[styles.ragBadgeText, { color: '#FF9900' }]}>AWS S3</Text>
+            </View>
+          </View>
+
+          {/* Model selector */}
+          <View style={[styles.modelSelectorRow, { zIndex: 10 }]}>
+            <Text style={styles.modelSelectorLabel}>MODEL</Text>
+            <View style={{ position: 'relative' }}>
+              <TouchableOpacity
+                id="model-select-dropdown"
+                onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                activeOpacity={0.75}
+                style={styles.dropdownToggle}
+              >
+                <View style={[styles.modelPillDot, { backgroundColor: selectedModel === 'groq' ? '#F9A825' : '#4285F4' }]} />
+                <Text style={styles.dropdownToggleText}>
+                  {selectedModel === 'groq' ? 'Groq · Llama 3.1' : 'Gemini Flash'}
+                </Text>
+                <Ionicons name={isDropdownOpen ? 'chevron-up' : 'chevron-down'} size={14} color="rgba(255,255,255,0.4)" />
+              </TouchableOpacity>
+
+              {isDropdownOpen && (
+                <View style={styles.dropdownMenu}>
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      handleModelSelect('groq');
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <View style={[styles.modelPillDot, { backgroundColor: '#F9A825' }]} />
+                    <Text style={[styles.dropdownItemText, selectedModel === 'groq' && { color: '#F9A825' }]}>Groq · Llama 3.1</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      handleModelSelect('gemini');
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <View style={[styles.modelPillDot, { backgroundColor: '#4285F4' }]} />
+                    <Text style={[styles.dropdownItemText, selectedModel === 'gemini' && { color: '#4285F4' }]}>Gemini Flash</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -212,7 +281,9 @@ export function AskNoelCast() {
                 {loading ? (
                   <>
                     <ActivityIndicator size="small" color={Colors.accent} />
-                    <Text style={styles.askBtnText}>Finding your stations...</Text>
+                    <Text style={styles.askBtnText}>
+                      {selectedModel === 'gemini' ? 'Asking Gemini...' : 'Asking Llama...'}
+                    </Text>
                   </>
                 ) : (
                   <>
@@ -282,10 +353,17 @@ export function AskNoelCast() {
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                         >
-                          <Image
-                            source={require('@/assets/images/station-placeholder.png')}
-                            style={styles.stationLogo}
-                          />
+                          <View style={styles.stationLogoContainer}>
+                            <Image
+                              source={require('@/assets/images/station-placeholder.png')}
+                              style={styles.stationLogo}
+                            />
+                            {player?.currentStation?.stationuuid === station.stationuuid && player.isPlaying && (
+                              <View style={styles.playingOverlay}>
+                                <EqualizerBars />
+                              </View>
+                            )}
+                          </View>
                           <View style={styles.stationInfo}>
                             <Text style={styles.stationName} numberOfLines={1}>
                               {station.name?.trim()}
@@ -312,7 +390,11 @@ export function AskNoelCast() {
 
                 {/* Try again */}
                 <TouchableOpacity
-                  onPress={() => { reset(); setQuery(''); }}
+                  onPress={() => { 
+                    reset(); 
+                    setQuery(''); 
+                    AsyncStorage.removeItem(QUERY_STORAGE_KEY);
+                  }}
                   style={styles.tryAgainBtn}
                 >
                   <Ionicons name="refresh" size={15} color={Colors.textMuted} />
@@ -456,6 +538,71 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.5,
+  },
+  // ── Model Selector ────────────────────────────────────────────────────────────
+  modelSelectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  modelSelectorLabel: {
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  dropdownToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  dropdownToggleText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 40,
+    left: 0,
+    backgroundColor: '#1a0a0a',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    padding: 8,
+    width: 170,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  dropdownItemText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modelPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   scrollArea: {
     flex: 1,
@@ -634,13 +781,25 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
-  stationLogo: {
+  stationLogoContainer: {
     width: 52,
     height: 52,
     borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
     backgroundColor: '#1a0a0a',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+  },
+  stationLogo: {
+    width: '100%',
+    height: '100%',
+  },
+  playingOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stationInfo: {
     flex: 1,
