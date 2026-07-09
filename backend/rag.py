@@ -91,6 +91,37 @@ def is_ready() -> bool:
 def embed_query(text: str):
     """Embed a user query into a dense vector."""
     import numpy as np
+    
+    # Render Free Tier has 512MB RAM, loading sentence-transformers locally causes OOM.
+    # We use the free HuggingFace API in production to embed queries instead.
+    if os.getenv("RENDER") or os.getenv("HF_TOKEN"):
+        try:
+            import httpx
+            # The exact model used to build the index
+            api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+            headers = {}
+            hf_token = os.getenv("HF_TOKEN")
+            if hf_token:
+                headers["Authorization"] = f"Bearer {hf_token}"
+                
+            response = httpx.post(api_url, headers=headers, json={"inputs": [text]}, timeout=10.0)
+            if response.status_code == 200:
+                vec = response.json()
+                # API returns list of lists (batch), we want the first item
+                if isinstance(vec, list) and len(vec) > 0:
+                    if isinstance(vec[0], list):
+                        vec = vec[0]
+                    return np.array([vec], dtype="float32")
+            else:
+                logger.error(f"HF API returned {response.status_code}: {response.text}")
+        except Exception as exc:
+            logger.error(f"Failed to call HF Inference API: {exc}")
+            
+        if os.getenv("RENDER"):
+            # Do NOT fall back to local model on Render to prevent OOM crashing the whole server
+            raise RuntimeError("Hugging Face API failed and local fallback is disabled on Render.")
+            
+    # Fallback to local model (for local development or if API fails)
     model = _load_model()
     vec = model.encode([text], normalize_embeddings=True)
     return np.array(vec, dtype="float32")
