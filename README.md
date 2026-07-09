@@ -43,31 +43,31 @@
 ### Web Experience
 
 <p align="center">
-  <img src="screenshots/web-home.png" width="45%" alt="Web Home Screen" />
+  <img src="screenshots/web-home.PNG" width="45%" alt="Web Home Screen" />
   &nbsp;
-  <img src="screenshots/web-player.png" width="45%" alt="Web Player Screen" />
+  <img src="screenshots/web-player.PNG" width="45%" alt="Web Player Screen" />
 </p>
 
 <p align="center">
-  <img src="screenshots/web-asknoel-1.png" width="30%" alt="Ask NoelCast – Chat" />
+  <img src="screenshots/web-asknoel-1.PNG" width="30%" alt="Ask NoelCast – Chat" />
   &nbsp;
-  <img src="screenshots/web-asknoel-2.png" width="30%" alt="Ask NoelCast – Results" />
+  <img src="screenshots/web-asknoel-2.PNG" width="30%" alt="Ask NoelCast – Results" />
   &nbsp;
-  <img src="screenshots/web-asknoel-3.png" width="30%" alt="Ask NoelCast – Recommendation" />
+  <img src="screenshots/web-asknoel-3.PNG" width="30%" alt="Ask NoelCast – Recommendation" />
 </p>
 
 ### Mobile Experience
 
 <p align="center">
-  <img src="screenshots/mobile-home.png" width="18%" alt="Mobile Home Screen" />
+  <img src="screenshots/mobile-home.PNG" width="18%" alt="Mobile Home Screen" />
   &nbsp;
-  <img src="screenshots/mobile-player.png" width="18%" alt="Mobile Player Screen" />
+  <img src="screenshots/mobile-player.PNG" width="18%" alt="Mobile Player Screen" />
   &nbsp;
-  <img src="screenshots/mobile-favorites.png" width="18%" alt="Mobile Favorites Screen" />
+  <img src="screenshots/mobile-favorites.PNG" width="18%" alt="Mobile Favorites Screen" />
   &nbsp;
-  <img src="screenshots/mobile-asknoel-1.png" width="18%" alt="Ask NoelCast Mobile – Chat" />
+  <img src="screenshots/mobile-asknoel-1.PNG" width="18%" alt="Ask NoelCast Mobile – Chat" />
   &nbsp;
-  <img src="screenshots/mobile-asknoel-2.png" width="18%" alt="Ask NoelCast Mobile – Results" />
+  <img src="screenshots/mobile-asknoel-2.PNG" width="18%" alt="Ask NoelCast Mobile – Results" />
 </p>
 
 ---
