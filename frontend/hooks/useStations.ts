@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '@/constants/api';
 import { Station, StationsResponse } from '@/constants/types';
+
+const CACHE_KEY = 'STATIONS_CACHE';
+const CACHE_TIME_KEY = 'STATIONS_CACHE_TIME';
+const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface UseStationsResult {
   stations: Station[];
@@ -30,13 +35,36 @@ export function useStations(): UseStationsResult {
     setError(null);
 
     try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedDataStr = await AsyncStorage.getItem(CACHE_KEY);
+        const cachedTimeStr = await AsyncStorage.getItem(CACHE_TIME_KEY);
+        
+        if (cachedDataStr && cachedTimeStr) {
+          const cachedTime = parseInt(cachedTimeStr, 10);
+          const now = Date.now();
+          
+          if (now - cachedTime < CACHE_EXPIRY_MS) {
+            // Cache is valid
+            const parsedData = JSON.parse(cachedDataStr) as StationsResponse;
+            setStations(parsedData.stations);
+            setIsLoading(false);
+            return;
+          }
+        }
+      }
+
       let promise = initialFetchPromise;
       
       // If forcing refresh or no existing promise, create a new one
       if (forceRefresh || !promise) {
         promise = fetch(`${API_BASE_URL}/stations?limit=200`).then(async res => {
           if (!res.ok) throw new Error(`Server error: ${res.status}`);
-          return res.json();
+          const data = await res.json();
+          // Save to cache
+          await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
+          await AsyncStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+          return data;
         });
         initialFetchPromise = promise;
       }
@@ -84,6 +112,6 @@ export function useStations(): UseStationsResult {
     selectedCountry,
     setSelectedCountry,
     availableCountries,
-    refresh: fetchStations,
+    refresh: () => fetchStations(true),
   };
 }

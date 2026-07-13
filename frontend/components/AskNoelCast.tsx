@@ -107,7 +107,7 @@ export function AskNoelCast() {
   return (
     <>
       {/* ── Floating Action Button ── */}
-      <Animated.View style={[styles.fab, { transform: [{ scale: pulseAnim }], bottom: hasActivePlayer ? 110 : 40 }]}>
+      <Animated.View style={[styles.fab, { transform: [{ scale: pulseAnim }], bottom: hasActivePlayer ? 160 : 90 }]}>
         <TouchableOpacity
           id="ask-noelcast-fab"
           onPress={openModal}
@@ -122,7 +122,7 @@ export function AskNoelCast() {
           >
             <Image 
               source={require('@/assets/images/android-splash.png')} 
-              style={{ width: 75, height: 75, resizeMode: 'cover' }} 
+              style={{ width: 95, height: 95, resizeMode: 'cover' }} 
             />
           </LinearGradient>
         </TouchableOpacity>
@@ -419,9 +419,9 @@ const styles = StyleSheet.create({
     zIndex: 200,
   },
   fabInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     shadowColor: '#E53935',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5,
@@ -429,9 +429,9 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   fabGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },

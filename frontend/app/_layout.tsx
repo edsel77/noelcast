@@ -43,7 +43,9 @@ export default function RootLayout() {
               <meta name="twitter:image" content="https://noelcast.driftapps.xyz/noelcast-feature-image.png" />
             </Head>
             <StatusBar style="light" />
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="developer" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+            </Stack>
             {/* Global full-screen player overlay */}
             <FullScreenPlayer />
           </PlayerProvider>

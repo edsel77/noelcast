@@ -1,6 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Platform } from 'react-native';
-import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
+import { AppState, Platform } from 'react-native';
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync, requestNotificationPermissionsAsync } from 'expo-audio';
+import { Asset } from 'expo-asset';
+
+// Resolve the bundled app icon to a URI usable by the OS for media notification artwork
+const APP_ICON = Asset.fromModule(require('@/assets/images/icon.png'));
 import { Station } from '@/constants/types';
 
 interface PlayerState {
@@ -30,6 +34,13 @@ function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
     keepAudioSessionActive: true,
   });
   const playerStatus = useAudioPlayerStatus(player);
+  const [artworkUri, setArtworkUri] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    APP_ICON.downloadAsync()
+      .then(() => setArtworkUri(APP_ICON.localUri ?? APP_ICON.uri))
+      .catch(() => setArtworkUri(APP_ICON.uri));
+  }, []);
 
   const [state, setState] = useState<PlayerState>({
     currentStation: null,
@@ -66,12 +77,60 @@ function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
       shouldPlayInBackground: true,
       playsInSilentMode: true,
       allowsRecording: false,
-      interruptionMode: 'mixWithOthers',
+      // doNotMix is required for lock screen / media notification controls to work
+      interruptionMode: 'doNotMix',
       shouldRouteThroughEarpiece: false,
     });
+
+    // Android 13+ requires POST_NOTIFICATIONS permission to show the media notification
+    if (Platform.OS === 'android') {
+      requestNotificationPermissionsAsync().catch(() => {});
+    }
   }, []);
 
+  // Keep lock screen / media notification metadata in sync with current station.
+  // Delay the call so the Android MediaBrowserService has time to bind first;
+  // calling it synchronously on mount races the service startup.
+  useEffect(() => {
+    if (!state.currentStation) return;
+    const metadata = {
+      title: state.currentStation.name,
+      artist: state.currentStation.country || 'Christmas Radio',
+      artworkUrl: artworkUri,
+    };
+    const timer = setTimeout(() => {
+      try {
+        player.updateLockScreenMetadata(metadata);
+      } catch (_) {
+        // Service not yet bound — metadata will be updated on next station change
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [player, state.currentStation, artworkUri]);
+
+  // On web, browsers suspend AudioContext when the tab is hidden.
+  // Resume playback when the tab becomes visible again.
+  const wasPlayingRef = useRef(false);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        // Tab is being hidden — track if we were playing
+        wasPlayingRef.current = playerStatus.playing;
+      } else if (nextState === 'active') {
+        // Tab is visible again — resume if we were playing
+        if (wasPlayingRef.current) {
+          player.play();
+        }
+      }
+    });
+
+    return () => subscription.remove();
+  }, [player, playerStatus.playing]);
+
   const stopPlayer = useCallback(async () => {
+    player.clearLockScreenControls();
     player.pause();
     player.replace(null);
     setState(prev => ({ ...prev, isPlaying: false, isLoading: false, currentStation: null }));
@@ -90,6 +149,39 @@ function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
     try {
       player.replace(station.stream_url);
       player.play();
+
+      // Delay setActiveForLockScreen so the Android MediaBrowserService has time
+      // to bind before we attempt to register the media session.
+      setTimeout(() => {
+        try {
+          player.setActiveForLockScreen(
+            true,
+            {
+              title: station.name,
+              artist: station.country || 'Christmas Radio',
+              artworkUrl: artworkUri,
+            },
+            { isLiveStream: true },
+          );
+        } catch (_) {
+          // Service not yet ready — retrying after additional delay
+          setTimeout(() => {
+            try {
+              player.setActiveForLockScreen(
+                true,
+                {
+                  title: station.name,
+                  artist: station.country || 'Christmas Radio',
+                  artworkUrl: artworkUri,
+                },
+                { isLiveStream: true },
+              );
+            } catch (_2) {
+              // Give up — lock screen controls unavailable for this session
+            }
+          }, 2000);
+        }
+      }, 1500);
     } catch (err: any) {
       setState(prev => ({
         ...prev,
@@ -98,7 +190,7 @@ function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
         error: 'Failed to load stream. Please try another station.',
       }));
     }
-  }, [player]);
+  }, [player, artworkUri]);
 
   const togglePlayPause = useCallback(async () => {
     if (playerStatus.playing) {

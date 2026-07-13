@@ -268,7 +268,13 @@ export function FullScreenPlayer({ inline = false }: { inline?: boolean }) {
   // ── Full-screen modal (mobile / tablet) ─────────────────────────────────────
 
   return (
-    <Modal visible={isPlayerVisible} transparent animationType="slide" statusBarTranslucent>
+    <Modal 
+      visible={isPlayerVisible} 
+      transparent 
+      animationType="slide" 
+      statusBarTranslucent
+      onRequestClose={closePlayer}
+    >
       <View style={styles.root}>
         <LinearGradient
           colors={['#1A0000', '#0A0A0A', '#000000']}

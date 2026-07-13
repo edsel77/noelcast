@@ -16,6 +16,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Station } from '@/constants/types';
 import { useStations } from '@/hooks/useStations';
@@ -39,6 +40,7 @@ export default function HomeScreen() {
     togglePlayPause: async () => {}, playNext: async () => {}, playPrevious: async () => {}, playStation: async () => {},
   };
   const { isTablet, isDesktop, width } = useBreakpoint();
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -153,7 +155,15 @@ export default function HomeScreen() {
     <>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerTopRow}>
-          <View style={styles.brand}>
+          <TouchableOpacity 
+            style={styles.brand}
+            activeOpacity={Platform.OS === 'android' ? 0.7 : 1}
+            onPress={() => {
+              if (Platform.OS === 'android') {
+                router.push('/developer');
+              }
+            }}
+          >
             <Image source={require('@/assets/images/icon.png')} style={styles.brandLogo} resizeMode="contain" />
             <View>
               <Text style={styles.appName}>NoelCast</Text>
@@ -162,8 +172,9 @@ export default function HomeScreen() {
                 <Text style={styles.appTagline}>Christmas Radio</Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
           <View style={{ flexDirection: 'row', gap: 8 }}>
+
             <TouchableOpacity onPress={toggleFilter} style={styles.iconBtn}>
               <Ionicons name={filterVisible ? 'funnel' : 'funnel-outline'} size={20} color={Colors.text} />
             </TouchableOpacity>

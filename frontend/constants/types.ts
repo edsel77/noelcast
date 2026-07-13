@@ -2,6 +2,7 @@ export interface Station {
   stationuuid: string;
   name: string;
   stream_url: string;
+  favicon?: string;
   url?: string;
   url_resolved?: string;
   homepage?: string;
