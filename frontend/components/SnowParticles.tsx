@@ -47,7 +47,7 @@ export function SnowParticles() {
           Animated.timing(flake.opacity, {
             toValue: 0,
             duration: 300,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
         ])
       );
