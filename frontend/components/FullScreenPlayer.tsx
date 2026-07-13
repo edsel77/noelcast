@@ -101,12 +101,12 @@ function MovingSnowflake({ index }: { index: number }) {
         Animated.timing(anim, {
           toValue: 1,
           duration: 3000 + (index % 5) * 1000,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(anim, {
           toValue: 0,
           duration: 3000 + (index % 5) * 1000,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     ).start();
@@ -150,12 +150,12 @@ function PulseRing({ active, logoSize }: { active: boolean, logoSize: number }) 
       animRef.current = Animated.loop(
         Animated.parallel([
           Animated.sequence([
-            Animated.timing(scale, { toValue: 1.18, duration: 1000, useNativeDriver: true }),
-            Animated.timing(scale, { toValue: 1, duration: 1000, useNativeDriver: true }),
+            Animated.timing(scale, { toValue: 1.18, duration: 1000, useNativeDriver: Platform.OS !== 'web' }),
+            Animated.timing(scale, { toValue: 1, duration: 1000, useNativeDriver: Platform.OS !== 'web' }),
           ]),
           Animated.sequence([
-            Animated.timing(opacity, { toValue: 0.35, duration: 500, useNativeDriver: true }),
-            Animated.timing(opacity, { toValue: 0, duration: 1000, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0.35, duration: 500, useNativeDriver: Platform.OS !== 'web' }),
+            Animated.timing(opacity, { toValue: 0, duration: 1000, useNativeDriver: Platform.OS !== 'web' }),
           ]),
         ])
       );

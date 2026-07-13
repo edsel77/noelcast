@@ -36,12 +36,12 @@ export function SnowParticles() {
             Animated.timing(flake.y, {
               toValue: SH + 20,
               duration: flake.duration,
-              useNativeDriver: true,
+              useNativeDriver: Platform.OS !== 'web',
             }),
             Animated.timing(flake.opacity, {
               toValue: 0.7,
               duration: 500,
-              useNativeDriver: true,
+              useNativeDriver: Platform.OS !== 'web',
             }),
           ]),
           Animated.timing(flake.opacity, {
