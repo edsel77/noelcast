@@ -74,14 +74,47 @@
 
 ## 🏗️ Tech Stack
 
-| Layer            | Technology                                                                                               | Deployment                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| **Frontend**     | [Expo](https://expo.dev) (React Native)                                                                  | [Netlify](https://netlify.com) (web) · Google Play (Android) |
-| **Backend**      | [FastAPI](https://fastapi.tiangolo.com/) (Python)                                                        | [Render](https://render.com)                                 |
-| **AI / RAG**     | Groq (Llama 3.1) + FAISS + HuggingFace                                                                   | Free inference, local embeddings                             |
-| **Storage**      | [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) | localStorage on web                                          |
-| **Vector Store** | [AWS S3](https://aws.amazon.com/s3/) (Free Tier)                                                         | Persists FAISS index for stateless deployments               |
-| **Stations API** | [Radio Browser API](https://www.radio-browser.info/)                                                     | Free, no key required                                        |
+| Layer               | Technology                                                                                                | Notes                                              |
+| ------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **Frontend**        | [Expo](https://expo.dev) (React Native)                                                                   | Web via [Netlify](https://netlify.com) · Android APK / Play Store |
+| **Backend**         | [FastAPI](https://fastapi.tiangolo.com/) + Uvicorn                                                        | Deployed on [Render](https://render.com)           |
+| **AI / RAG**        | [Groq](https://groq.com) — `llama-3.1-8b-instant` + FAISS                                                | Free tier; switchable to Gemini 2.0 Flash          |
+| **Embeddings**      | [fastembed](https://github.com/qdrant/fastembed) — `all-MiniLM-L6-v2`                                    | ONNX Runtime — ~100 MB RAM vs ~500 MB (PyTorch)   |
+| **Vector Store**    | [FAISS](https://faiss.ai/) (`faiss-cpu`)                                                                  | In-process ANN search, no external DB required     |
+| **Index Storage**   | [AWS S3](https://aws.amazon.com/s3/) (Free Tier)                                                          | Persists FAISS index for stateless cloud deploys   |
+| **Local Storage**   | [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) | Favorites + cache; falls back to localStorage on web |
+| **Stations API**    | [Radio Browser API](https://www.radio-browser.info/)                                                      | Free, community-run, no API key required           |
+
+### 🤖 AI / RAG Pipeline
+
+The **"Ask NoelCast"** recommender is a lightweight Retrieval-Augmented Generation (RAG) system built in Python. Here's how each component fits together:
+
+| Component           | Technology                                                               | Role                                                                 |
+| ------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| **Embedding Model** | [`sentence-transformers/all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) via [fastembed](https://github.com/qdrant/fastembed) | Converts user queries and station metadata into 384-dim dense vectors using ONNX Runtime (memory-efficient, no PyTorch) |
+| **Vector Index**    | [FAISS](https://faiss.ai/) (`faiss-cpu`)                                 | Stores all station embeddings; performs approximate nearest-neighbour search to retrieve the top-K most relevant stations for a given query |
+| **Index Persistence** | [AWS S3](https://aws.amazon.com/s3/)                                   | Stores the pre-built `faiss.index` + `stations_meta.json` in S3 so Render's stateless container can download and hot-load them on startup |
+| **Primary LLM**     | [Groq](https://groq.com) — `llama-3.1-8b-instant`                       | Generates warm, festive station recommendations from the retrieved context; uses Groq's free inference tier for ultra-low latency |
+| **Fallback LLM**    | [Google Gemini](https://ai.google.dev/) — `gemini-2.0-flash`            | Optional alternative LLM provider; activated by passing `?model=gemini` on the `/ask` endpoint |
+| **API Framework**   | [FastAPI](https://fastapi.tiangolo.com/) + Uvicorn                       | Exposes the `/ask` and `/stations` endpoints; handles CORS, async lifecycle, and index pre-loading at startup |
+
+**RAG flow (end-to-end):**
+
+```
+User query
+   │
+   ▼
+fastembed (all-MiniLM-L6-v2) ──► 384-dim query vector
+   │
+   ▼
+FAISS ANN search ──► top-5 station documents (name, country, tags, bitrate)
+   │
+   ▼
+Groq LLM (llama-3.1-8b-instant) ──► friendly recommendation text
+   │
+   ▼
+Response { answer, stations[] }
+```
 
 ---
 
