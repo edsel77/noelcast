@@ -12,8 +12,8 @@
   <a href="https://noelcast.netlify.app">
     <img src="https://img.shields.io/badge/Web_App-Live-B71C1C?style=for-the-badge&logo=netlify&logoColor=white" alt="Live Web App" />
   </a>
-  <a href="https://github.com/your-username/noel-cast/releases">
-    <img src="https://img.shields.io/github/v/release/your-username/noel-cast?style=for-the-badge&color=F9A825&logo=android" alt="Latest Release" />
+  <a href="https://play.google.com/store/apps/details?id=com.driftapps.noelcast">
+    <img src="https://img.shields.io/badge/Google_Play-Available-34A853?style=for-the-badge&logo=google-play&logoColor=white" alt="Get it on Google Play" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-27AE60?style=for-the-badge" alt="MIT License" />
