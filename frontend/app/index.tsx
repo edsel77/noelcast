@@ -4,6 +4,7 @@ import {
   Animated,
   FlatList,
   Image,
+  Linking,
   Platform,
   RefreshControl,
   StyleSheet,
@@ -18,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import { GITHUB_URL, PLAYSTORE_URL } from '@/constants/Links';
 import { Station } from '@/constants/types';
 import { useStations } from '@/hooks/useStations';
 import { StationCard } from '@/components/StationCard';
@@ -329,6 +331,22 @@ export default function HomeScreen() {
                   <View style={styles.navBadge}><Text style={styles.navBadgeText}>{filtered.length}</Text></View>
                 )}
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.navItem}
+                onPress={() => Linking.openURL(GITHUB_URL)}
+              >
+                <Ionicons name="logo-github" size={20} color={Colors.textMuted} />
+                <Text style={styles.navItemText}>GitHub</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.navItem}
+                onPress={() => Linking.openURL(PLAYSTORE_URL)}
+              >
+                <Ionicons name="logo-google-playstore" size={20} color={Colors.textMuted} />
+                <Text style={styles.navItemText}>Get Android App</Text>
+              </TouchableOpacity>
             </View>
 
 
@@ -422,7 +440,7 @@ export default function HomeScreen() {
                 <Text style={styles.countdownNumber}>{daysToChristmas}</Text>
                 <Text style={styles.countdownLabel}>days to go</Text>
               </View>
-              <LinearGradient colors={['rgba(255,255,255,0.1)', 'transparent']} style={StyleSheet.absoluteFill} borderRadius={12} />
+              <LinearGradient colors={['rgba(255,255,255,0.1)', 'transparent']} style={[StyleSheet.absoluteFill, { borderRadius: 12 }]} />
             </View>
 
             <View style={styles.sidebarDivider} />
